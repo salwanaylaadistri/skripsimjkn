@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  --jkn-blue-dark: #184087;
+  --jkn-blue-light: #46ADDC;
+  --jkn-pink: #D26AA1;
+  --jkn-green: #009B4D;
+  --jkn-green-dark: #007A3D;
+  --jkn-green-light: #E8F5EE;
+  --jkn-gray: #F5F5F5;
+  --jkn-gray-dark: #6B7280;
+  --jkn-text: #1F2937;
+  --jkn-border: #E5E7EB;
+}
+
+@theme inline {
+  --color-jkn-blue-dark: var(--jkn-blue-dark);
+  --color-jkn-blue-light: var(--jkn-blue-light);
+  --color-jkn-pink: var(--jkn-pink);
+  --color-jkn-green: var(--jkn-green);
+  --color-jkn-green-dark: var(--jkn-green-dark);
+  --color-jkn-green-light: var(--jkn-green-light);
+  --color-jkn-gray: var(--jkn-gray);
+  --color-jkn-gray-dark: var(--jkn-gray-dark);
+  --color-jkn-text: var(--jkn-text);
+  --color-jkn-border: var(--jkn-border);
+  --font-sans: var(--font-poppins), Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, [role="button"] {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #f0f0f0;
+  font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
+}
+
+/* Scrollbar disembunyikan di mobile container */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
