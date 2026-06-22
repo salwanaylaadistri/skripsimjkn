@@ -71,10 +71,13 @@ export function UserLevelProvider({ children }: { children: ReactNode }) {
   useEffect(() => { sessionCountRef.current = sessionCount; }, [sessionCount]);
 
   // Simpan per-user key setiap kali ada interaksi bermakna
+  // userId disertakan di dalam data agar bisa divalidasi saat dibaca
   useEffect(() => {
     if (interactionData.uniqueFeatureAccessed > 0) {
       const currentId = localStorage.getItem("jkn_user_id");
-      if (currentId) {
+      const ownerId = localStorage.getItem("jkn_owner_id");
+      // Hanya simpan kalau owner_id cocok — mencegah data tersimpan ke key akun yang salah
+      if (currentId && ownerId === currentId) {
         const duration = Math.floor((Date.now() - sessionStart) / 1000);
         const snapshot = { ...interactionData, sessionDuration: duration, userId: currentId };
         localStorage.setItem(`jkn_interaction_data_${currentId}`, JSON.stringify(snapshot));
@@ -82,36 +85,32 @@ export function UserLevelProvider({ children }: { children: ReactNode }) {
     }
   }, [interactionData]);
 
-  useEffect(() => {
-    const stored = localStorage.getItem("jkn_user_level");
+  const runPredict = () => {
     const storedCount = localStorage.getItem("jkn_session_count");
-    const currentUserId = localStorage.getItem("jkn_user_id");
-    const ownerId = localStorage.getItem("jkn_owner_id");
-    const isSameUser = currentUserId && ownerId === currentUserId;
-
-    if (stored && isSameUser) {
-      setUserLevelState(stored as UserLevel);
-      setIsFirstSession(false);
-    }
-    // feature_order selalu mulai dari default, hanya diupdate setelah /predict selesai
-
-    let count = storedCount ? parseInt(storedCount) : 0;
-    if (!sessionStorage.getItem("jkn_current_session")) {
-      count = count + 1;
-      sessionStorage.setItem("jkn_current_session", "1");
-      localStorage.setItem("jkn_session_count", String(count));
-    }
-    setSessionCount(count);
-
-    // Panggil /predict menggunakan data interaksi sesi sebelumnya milik akun ini
-    // Hanya jalan kalau ada interaksi bermakna (minimal 1 fitur diakses)
     const userId = localStorage.getItem("jkn_user_id");
-    const prevData = userId ? localStorage.getItem(`jkn_interaction_data_${userId}`) : null;
+    const ownerId = localStorage.getItem("jkn_owner_id");
+
+    // Reset state ke default dulu — mencegah nilai akun sebelumnya tampil
+    setUserLevelState("pemula");
+    setIsFirstSession(true);
+    setFeatureOrder(["antrean", "riwayat", "perubahan_data"]);
+    setIsPredicting(false);
+
+    const isSameUser = userId && ownerId === userId;
+    if (!userId || !isSameUser) return;
+
+    const prevData = localStorage.getItem(`jkn_interaction_data_${userId}`);
     const prevParsed = prevData ? (JSON.parse(prevData) as InteractionData) : null;
-    if (prevParsed && userId && prevParsed.uniqueFeatureAccessed > 0) {
-      const d = prevParsed!;
-      const totalFreq = Object.values(d.featureFrequency).reduce((a, b) => a + b, 0);
-      setIsPredicting(true);
+
+    if (!prevParsed || prevParsed.uniqueFeatureAccessed <= 0) return;
+    if (prevParsed.userId && prevParsed.userId !== userId) return;
+
+    const d = prevParsed;
+    const totalFreq = Object.values(d.featureFrequency).reduce((a, b) => a + b, 0);
+    const count = storedCount ? parseInt(storedCount) : 0;
+
+    setIsPredicting(true);
+    setTimeout(() => {
       fetch(`${BACKEND_URL}/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -132,6 +131,8 @@ export function UserLevelProvider({ children }: { children: ReactNode }) {
       })
         .then((res) => res.json())
         .then((result) => {
+          const currentUserId = localStorage.getItem("jkn_user_id");
+          if (currentUserId !== userId) return;
           if (result.label) {
             setUserLevelState(result.label as UserLevel);
             localStorage.setItem("jkn_user_level", result.label);
@@ -144,8 +145,26 @@ export function UserLevelProvider({ children }: { children: ReactNode }) {
         })
         .catch(() => {})
         .finally(() => setIsPredicting(false));
-    }
+    }, 50);
+  };
 
+  useEffect(() => {
+    const storedCount = localStorage.getItem("jkn_session_count");
+
+    let count = storedCount ? parseInt(storedCount) : 0;
+    if (!sessionStorage.getItem("jkn_current_session")) {
+      count = count + 1;
+      sessionStorage.setItem("jkn_current_session", "1");
+      localStorage.setItem("jkn_session_count", String(count));
+    }
+    setSessionCount(count);
+
+    // Jalankan predict saat pertama mount
+    runPredict();
+
+    // Jalankan ulang setiap kali ada login baru (event dari login page)
+    window.addEventListener("jkn_login", runPredict);
+    return () => window.removeEventListener("jkn_login", runPredict);
   }, []);
 
   const sendInteractionData = () => {
@@ -205,8 +224,13 @@ export function UserLevelProvider({ children }: { children: ReactNode }) {
         sendInteractionData();
       }
     };
+    const handleUnload = () => sendInteractionData();
     document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("pagehide", handleUnload);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("pagehide", handleUnload);
+    };
   }, []);
 
   const setUserLevel = (level: UserLevel) => {

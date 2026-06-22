@@ -320,6 +320,17 @@ def get_research_logs():
         "data":   rows,
     }
 
+@app.get("/research/by-user/{user_id}")
+def get_research_by_user(user_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM research_logs WHERE user_id = ? ORDER BY id DESC LIMIT 1", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="Data research tidak ditemukan untuk user ini.")
+    return dict(row)
+
 @app.delete("/research/{log_id}")
 def delete_research_log(log_id: int):
     conn = get_connection()

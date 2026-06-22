@@ -53,15 +53,23 @@ export default function LoginPage() {
         return;
       }
       const data = await res.json();
-      // Bersihkan data sesi akun sebelumnya (session_count sengaja tidak dihapus — kumulatif per device)
+      const newUserId = String(data.user_id);
       const prevOwnerId = localStorage.getItem("jkn_owner_id");
-      const isSameAccount = prevOwnerId === String(data.user_id);
+      const isSameAccount = prevOwnerId === newUserId;
+
+      // Hapus semua key sesi akun lama
       ["jkn_user_id","jkn_user_level","jkn_feature_order","jkn_user_nama"].forEach(k => localStorage.removeItem(k));
-      // Hapus interaction_data hanya kalau ganti akun — kalau akun sama, pertahankan untuk predict
-      if (!isSameAccount) localStorage.removeItem("jkn_interaction_data");
+
+      // Kalau ganti akun: hapus interaction_data umum saja
+      // Per-user key (jkn_interaction_data_${id}) TIDAK dihapus — dipertahankan
+      // agar tiap akun bisa menyimpan datanya sendiri dan predict bisa jalan saat login ulang
+      if (!isSameAccount) {
+        localStorage.removeItem("jkn_interaction_data");
+      }
+
       sessionStorage.clear();
-      localStorage.setItem("jkn_user_id", String(data.user_id));
-      localStorage.setItem("jkn_owner_id", String(data.user_id));
+      localStorage.setItem("jkn_user_id", newUserId);
+      localStorage.setItem("jkn_owner_id", newUserId);
       localStorage.setItem("jkn_user_nama", data.nama);
       localStorage.setItem("jkn_terms_agreed", data.terms_agreed ? "1" : "0");
       localStorage.setItem("jkn_has_pin", data.has_pin ? "1" : "0");
@@ -76,6 +84,7 @@ export default function LoginPage() {
         }
       } catch { /* tidak blokir login jika fetch profil gagal */ }
       sessionStorage.setItem("from_login", "1");
+      window.dispatchEvent(new Event("jkn_login"));
       router.push("/");
     } catch {
       setErrLogin("Tidak dapat terhubung ke server.");

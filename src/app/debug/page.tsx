@@ -17,6 +17,7 @@ export default function DebugPage() {
   const [saveLabel, setSaveLabel] = useState<"pemula" | "mahir">("pemula");
   const [saveStatus, setSaveStatus] = useState<string>("");
   const [resetCountDone, setResetCountDone] = useState(false);
+  const [injectStatus, setInjectStatus] = useState<string>("");
 
   const refresh = () => {
     setUserId(localStorage.getItem("jkn_user_id") ?? "null");
@@ -41,6 +42,41 @@ export default function DebugPage() {
     refresh();
     setResetCountDone(true);
     setTimeout(() => setResetCountDone(false), 3000);
+  };
+
+  const injectFromResearch = async () => {
+    const uid = localStorage.getItem("jkn_user_id");
+    if (!uid) { setInjectStatus("Tidak ada user yang login."); return; }
+    setInjectStatus("Mengambil data...");
+    try {
+      const res = await fetch(`${BACKEND_URL}/research/by-user/${uid}`);
+      if (!res.ok) { setInjectStatus("Data research tidak ditemukan untuk akun ini."); return; }
+      const d = await res.json();
+      const snapshot = {
+        userId: uid,
+        sessionCount:          d.session_count,
+        sessionDuration:       d.session_duration,
+        uniqueFeatureAccessed: d.unique_feature_accessed,
+        featureFrequency:      { antrean: d.freq_antrean, riwayat: d.freq_riwayat, perubahan_data: d.freq_perubahan_data },
+        taskCompletionRate:    d.task_completion_rate,
+        taskTime:              d.task_time,
+        errorCount:            d.error_count,
+        tutorialAccessed:      d.tutorial_accessed,
+        shortcutUsed:          d.shortcut_used,
+        freqAntrean:           d.freq_antrean,
+        freqRiwayat:           d.freq_riwayat,
+        freqPerubahanData:     d.freq_perubahan_data,
+        taskAttempted:         0,
+        taskCompleted:         0,
+        taskTimeTotal:         0,
+      };
+      localStorage.setItem(`jkn_interaction_data_${uid}`, JSON.stringify(snapshot));
+      localStorage.setItem("jkn_owner_id", uid);
+      refresh();
+      setInjectStatus(`Berhasil inject data research (label: ${d.label}) ke jkn_interaction_data_${uid}.`);
+    } catch {
+      setInjectStatus("Tidak dapat terhubung ke server.");
+    }
   };
 
   const fetchLogs = async () => {
@@ -149,6 +185,22 @@ export default function DebugPage() {
         </button>
         {resetCountDone && (
           <p className="text-center text-green-600 font-semibold text-sm">✓ Session count berhasil direset ke 0</p>
+        )}
+      </div>
+
+      {/* Inject Data dari Research Logs */}
+      <div className="bg-white rounded-2xl p-4 flex flex-col gap-2 shadow-sm border-2 border-[#009B4D]">
+        <h2 className="font-bold text-[#009B4D]">Inject Data dari Research Logs</h2>
+        <p className="text-xs text-gray-500">
+          Ambil data interaksi akun ini dari research_logs dan simpan ke localStorage agar predict bisa jalan tanpa ulang skenario.
+        </p>
+        <button onClick={injectFromResearch} className="w-full bg-[#009B4D] text-white font-bold py-3 rounded-xl text-sm">
+          Inject Data Akun {userId !== "null" ? userId : "?"}
+        </button>
+        {injectStatus && (
+          <p className={`text-xs text-center font-medium ${injectStatus.startsWith("Berhasil") ? "text-green-600" : "text-red-500"}`}>
+            {injectStatus}
+          </p>
         )}
       </div>
 

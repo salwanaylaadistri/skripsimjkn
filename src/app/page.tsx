@@ -129,7 +129,7 @@ export default function BerandaPage() {
   const searchRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { userLevel, setUserLevel, recordShortcut, featureOrder } = useUserLevel();
+  const { userLevel, setUserLevel, recordShortcut, featureOrder, isPredicting } = useUserLevel();
 
   // Mapping feature_order dari RFR ke id dominan
   const rfr2dominant = (f: string): "antrean" | "riwayat" | "ubah-data" => {
@@ -138,17 +138,7 @@ export default function BerandaPage() {
     return "antrean";
   };
 
-  const [dominanFeature, setDominanFeatureState] = useState<"antrean" | "riwayat" | "ubah-data">(() => {
-    if (typeof window !== "undefined") {
-      const stored = sessionStorage.getItem("jkn_domina_feature");
-      if (stored === "riwayat" || stored === "ubah-data") return stored;
-    }
-    return "antrean";
-  });
-  const setDominanFeature = (f: "antrean" | "riwayat" | "ubah-data") => {
-    setDominanFeatureState(f);
-    sessionStorage.setItem("jkn_domina_feature", f);
-  };
+  const [dominanFeature, setDominanFeature] = useState<"antrean" | "riwayat" | "ubah-data">("antrean");
 
   useEffect(() => {
     const nama = localStorage.getItem("jkn_user_nama");
@@ -365,24 +355,34 @@ export default function BerandaPage() {
               Semua Keluarga Anda Terlindungi (Aktif)
             </p>
             <div className="flex items-center gap-1.5">
-              {/* Toggle fitur dominan Ã¢â‚¬â€ mahir only, untuk keperluan slicing */}
-              <button
-                onClick={() => setDominanFeature(dominanFeature === "antrean" ? "riwayat" : dominanFeature === "riwayat" ? "ubah-data" : "antrean")}
-                className="flex items-center gap-1 bg-white/20 border border-white/40 rounded-full px-2.5 py-1"
-              >
-                <div className="w-1.5 h-1.5 rounded-full bg-purple-300" />
-                <span className="text-white text-[10px] font-semibold">
-                  {dominanFeature === "antrean" ? "Antrean" : dominanFeature === "riwayat" ? "Riwayat" : "Ubah Data"}
-                </span>
-              </button>
-              {/* Toggle level Ã¢â‚¬â€ hanya untuk keperluan slicing */}
-              <button
-                onClick={() => setUserLevel(userLevel === "pemula" ? "mahir" : "pemula")}
-                className="flex items-center gap-1 bg-white/20 border border-white/40 rounded-full px-2.5 py-1"
-              >
-                <div className={`w-1.5 h-1.5 rounded-full ${userLevel === "mahir" ? "bg-green-300" : "bg-yellow-300"}`} />
-                <span className="text-white text-[10px] font-semibold">{userLevel === "pemula" ? "Pemula" : "Mahir"}</span>
-              </button>
+              {isPredicting ? (
+                <div className="flex items-center gap-1.5 bg-white/15 border border-white/30 rounded-full px-3 py-1 animate-pulse">
+                  <svg className="w-3 h-3 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                  <span className="text-white text-[10px] font-semibold">Menyesuaikan...</span>
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setDominanFeature(dominanFeature === "antrean" ? "riwayat" : dominanFeature === "riwayat" ? "ubah-data" : "antrean")}
+                    className="flex items-center gap-1 bg-white/20 border border-white/40 rounded-full px-2.5 py-1"
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full bg-purple-300" />
+                    <span className="text-white text-[10px] font-semibold">
+                      {dominanFeature === "antrean" ? "Antrean" : dominanFeature === "riwayat" ? "Riwayat" : "Ubah Data"}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setUserLevel(userLevel === "pemula" ? "mahir" : "pemula")}
+                    className="flex items-center gap-1 bg-white/20 border border-white/40 rounded-full px-2.5 py-1"
+                  >
+                    <div className={`w-1.5 h-1.5 rounded-full ${userLevel === "mahir" ? "bg-green-300" : "bg-yellow-300"}`} />
+                    <span className="text-white text-[10px] font-semibold">{userLevel === "pemula" ? "Pemula" : "Mahir"}</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -391,8 +391,21 @@ export default function BerandaPage() {
       {/* Ã¢â€â‚¬Ã¢â€â‚¬ White content area Ã¢â€â‚¬Ã¢â€â‚¬ */}
       <div className="flex-1 bg-white -mt-5 rounded-t-3xl px-4 pt-5 pb-4 flex flex-col gap-4">
 
-        {/* Main feature card Ã¢â‚¬â€ berubah sesuai fitur dominan */}
-        {dominanFeature === "antrean" ? (
+        {/* Main feature card -- berubah sesuai fitur dominan */}
+        {isPredicting ? (
+          <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 flex items-center gap-4 animate-pulse">
+            <div className="w-20 h-20 bg-gray-100 rounded-xl shrink-0" />
+            <div className="flex-1 flex flex-col gap-2">
+              <div className="h-4 bg-gray-100 rounded-full w-2/3" />
+              <div className="h-3 bg-gray-100 rounded-full w-full" />
+              <div className="h-3 bg-gray-100 rounded-full w-4/5" />
+              <div className="flex gap-2 mt-1">
+                <div className="h-7 bg-gray-100 rounded-full w-28" />
+                <div className="h-7 bg-gray-100 rounded-full w-36" />
+              </div>
+            </div>
+          </div>
+        ) : dominanFeature === "antrean" ? (
           <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 flex items-center gap-4">
             <div className="w-20 h-20 flex items-center justify-center shrink-0">
               <Image src="/images/logoantre.svg" alt="Antrean Online" width={80} height={80} className="object-contain" />
