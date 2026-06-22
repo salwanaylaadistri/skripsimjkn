@@ -33,6 +33,7 @@ export default function DebugPage() {
     sessionStorage.removeItem("jkn_session_sent");
     sessionStorage.removeItem("jkn_current_session");
     refresh();
+    window.dispatchEvent(new Event("jkn_login"));
     router.push("/");
   };
 
@@ -73,6 +74,7 @@ export default function DebugPage() {
       localStorage.setItem(`jkn_interaction_data_${uid}`, JSON.stringify(snapshot));
       localStorage.setItem("jkn_owner_id", uid);
       refresh();
+      window.dispatchEvent(new Event("jkn_login"));
       setInjectStatus(`Berhasil inject data research (label: ${d.label}) ke jkn_interaction_data_${uid}.`);
     } catch {
       setInjectStatus("Tidak dapat terhubung ke server.");
