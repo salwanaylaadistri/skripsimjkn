@@ -25,12 +25,15 @@ export default function AntreanSebelumnyaPage() {
 
   const [pesertaList, setPesertaList] = useState<string[]>([pesertaDummy]);
   const [peserta, setPeserta] = useState("");
+  const [faskes, setFaskes] = useState("Klinik Indi Medika");
   useEffect(() => {
     const nama = localStorage.getItem("jkn_user_nama") ?? "Pengguna";
     const nik  = localStorage.getItem("jkn_nik") ?? "-";
     const utama = `${nama} (${nik})`;
     setPesertaList([utama, pesertaDummy]);
     setPeserta(utama);
+    const savedFaskes = localStorage.getItem("jkn_faskes");
+    if (savedFaskes) setFaskes(savedFaskes);
   }, []);
   const [poli, setPoli] = useState("Poli Umum");
   const [tanggal, setTanggal] = useState("Hari ini (28-04-2026)");
@@ -50,8 +53,7 @@ export default function AntreanSebelumnyaPage() {
             <ChevronLeft className="w-7 h-7 text-white" strokeWidth={2} />
           </button>
           <div className="text-center">
-            <h1 className="text-white font-bold text-base leading-tight">Puskesmas Mantrijeron</h1>
-            <p className="text-white/80 text-xs mt-0.5">0224465768859324</p>
+            <h1 className="text-white font-bold text-base leading-tight">{faskes}</h1>
           </div>
         </div>
       </div>
@@ -118,7 +120,23 @@ export default function AntreanSebelumnyaPage() {
         </div>
 
         <div className="flex-1" />
-        <button onClick={() => router.push("/antrean/tiket")} className="w-full bg-[#009B4D] text-white font-bold text-base py-4 rounded-2xl">
+        <button
+          onClick={() => {
+            const uid = localStorage.getItem("jkn_user_id");
+            if (uid) {
+              localStorage.removeItem(`jkn_checkin_done_${uid}`);
+              localStorage.setItem(`jkn_antrean_faskes_${uid}`, JSON.stringify({
+                peserta, poli, tanggal, tenagaMedis: tenagaFaskes, keluhan: "",
+                faskes,
+                nomorAntrean: "14",
+                estimasi: "09:30",
+                kodeBook: "2348405734898",
+              }));
+            }
+            router.push("/antrean/tiket");
+          }}
+          className="w-full bg-[#009B4D] text-white font-bold text-base py-4 rounded-2xl"
+        >
           Simpan
         </button>
       </div>

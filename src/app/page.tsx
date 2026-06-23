@@ -1,6 +1,7 @@
 ﻿﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -120,6 +121,15 @@ const TERMS_PAGES = [
 export default function BerandaPage() {
   const [userName, setUserName] = useState("Pengguna");
   const [showAntreanSheet, setShowAntreanSheet] = useState(false);
+  const [portalEl, setPortalEl] = useState<Element | null>(null);
+  useEffect(() => { setPortalEl(document.getElementById("app-portal")); }, []);
+  useEffect(() => {
+    const main = document.querySelector("main");
+    if (!main) return;
+    if (showAntreanSheet) main.style.overflow = "hidden";
+    else main.style.overflow = "";
+    return () => { main.style.overflow = ""; };
+  }, [showAntreanSheet]);
   const [showSebelumnyaInfo, setShowSebelumnyaInfo] = useState(false);
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
@@ -594,11 +604,11 @@ export default function BerandaPage() {
         <JanjiLayananCarousel />
       </div>
 
-      {/* Bottom sheet: Pilih Jenis Antrean */}
-      {showAntreanSheet && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end max-w-[430px] mx-auto">
-          <div className="absolute inset-0 bg-black/10" onClick={() => setShowAntreanSheet(false)} />
-          <div className="relative bg-white rounded-t-3xl px-5 pt-5 pb-8 flex flex-col gap-4 animate-slide-up">
+      {/* Bottom sheet: Pilih Jenis Antrean — dirender via portal setelah BottomNav */}
+      {showAntreanSheet && portalEl && createPortal(
+        <div className="fixed inset-0 z-50 flex flex-col justify-end" onTouchMove={(e) => e.stopPropagation()}>
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowAntreanSheet(false)} />
+          <div className="relative w-full max-w-[430px] mx-auto bg-white rounded-t-3xl px-5 pt-5 pb-8 flex flex-col gap-4 animate-slide-up overflow-y-auto no-scrollbar">
             <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-1" />
             <h2 className="text-[#184087] font-bold text-base text-center">Pilih Jenis Antrean</h2>
             <div className="flex flex-col gap-3">
@@ -606,7 +616,7 @@ export default function BerandaPage() {
                 <button
                   key={j.label}
                   onClick={() => { setShowAntreanSheet(false); router.push(j.href); }}
-                  className="flex items-center gap-3 bg-gray-50 rounded-2xl px-4 py-3.5 active:bg-gray-100 transition-colors"
+                  className="flex items-center gap-3 bg-gray-50 rounded-2xl px-4 py-4 active:bg-gray-100 transition-colors"
                 >
                   <div className="w-10 h-10 flex items-center justify-center shrink-0">
                     <img src={j.icon} alt={j.label} className="w-9 h-9 object-contain" />
@@ -617,7 +627,8 @@ export default function BerandaPage() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        portalEl
       )}
 
       {/* Popup info: Ambil Antrean Sebelumnya */}
@@ -650,18 +661,18 @@ export default function BerandaPage() {
 
       {/* Syarat & Ketentuan Ã¢â‚¬â€ muncul hanya saat pertama login */}
       {showTerms && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center px-6 bg-black/50 max-w-[430px] mx-auto">
-          <div className="bg-white rounded-2xl w-full shadow-xl flex flex-col overflow-hidden" style={{ maxHeight: "80vh" }}>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center px-5 bg-black/50 max-w-[430px] mx-auto">
+          <div className="bg-white rounded-2xl w-full shadow-xl flex flex-col overflow-hidden" style={{ maxHeight: "85vh" }}>
             {/* Title */}
-            <div className="px-5 pt-5 pb-3 text-center">
+            <div className="px-5 pt-4 pb-2 text-center">
               <h2 className="text-[#184087] font-bold text-base leading-snug whitespace-pre-line">
                 {TERMS_PAGES[termsPage].title}
               </h2>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto px-5 pb-3">
-              <ol className="flex flex-col gap-3 list-decimal list-outside pl-4">
+            <div className="flex-1 overflow-y-auto px-5 pb-2">
+              <ol className="flex flex-col gap-2.5 list-decimal list-outside pl-4">
                 {TERMS_PAGES[termsPage].points.map((p, i) => (
                   <li key={i} className="text-gray-700 text-xs leading-relaxed">{p}</li>
                 ))}
@@ -674,7 +685,7 @@ export default function BerandaPage() {
             </div>
 
             {/* Checkbox Saya Setuju */}
-            <div className="px-5 py-3 border-t border-gray-100">
+            <div className="px-5 py-2 border-t border-gray-100">
               <label className="flex items-center gap-2.5 cursor-pointer" onClick={() => setTermsAgreed(v => !v)}>
                 <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${termsAgreed ? "bg-[#184087] border-[#184087]" : "bg-white border-gray-400"}`}>
                   {termsAgreed && (
@@ -688,7 +699,7 @@ export default function BerandaPage() {
             </div>
 
             {/* Tombol navigasi */}
-            <div className="px-5 pb-5 pt-2 flex gap-2">
+            <div className="px-5 pb-4 pt-2 flex gap-2">
               <button
                 onClick={() => {
                   if (termsPage > 0) { setTermsPage(p => p - 1); setTermsAgreed(false); }
@@ -760,7 +771,7 @@ export default function BerandaPage() {
             </div>
 
             {/* Input PIN */}
-            <div className="flex gap-3">
+            <div className="flex gap-2 w-full justify-center">
               {(pinStep === 1 ? pin1 : pin2).map((val, i) => (
                 <input
                   key={i}
@@ -771,7 +782,7 @@ export default function BerandaPage() {
                   value={val}
                   onChange={e => handlePinChange(i, e.target.value, pinStep === 1 ? pin1 : pin2, pinStep === 1 ? setPin1 : setPin2, pinStep === 1 ? pin1Refs : pin2Refs)}
                   onKeyDown={e => handlePinKeyDown(i, e, pinStep === 1 ? pin1 : pin2, pinStep === 1 ? pin1Refs : pin2Refs)}
-                  className="w-11 h-12 text-center text-xl font-bold border-2 border-gray-300 focus:border-[#184087] rounded-xl bg-white outline-none transition-colors"
+                  className="w-11 h-12 text-center text-xl font-bold border-2 border-gray-300 focus:border-[#184087] rounded-xl bg-white outline-none transition-colors shrink-0"
                 />
               ))}
             </div>

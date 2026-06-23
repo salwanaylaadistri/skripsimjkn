@@ -93,7 +93,7 @@ export default function IsiDataRujukanPage() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 relative overflow-hidden">
+    <div className="flex flex-col min-h-full bg-gray-50 relative">
       {/* Header */}
       <div className="sticky top-0 z-10" style={{ background: GRADIENT }}>
         <StatusBar />
@@ -113,7 +113,7 @@ export default function IsiDataRujukanPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 pt-5 pb-6 flex flex-col gap-5">
+      <div className="flex-1 px-4 pt-5 pb-6 flex flex-col gap-5">
 
         {/* Step indicator */}
         <div className="flex items-center gap-2">

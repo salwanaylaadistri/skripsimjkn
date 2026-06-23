@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useRequireAuth } from "@/lib/useRequireAuth";
 
 import { useState, useEffect } from "react";
@@ -27,6 +27,56 @@ function TutorialPopup({ title, desc, visual, onSkip, onNext }: {
 }
 
 const GRADIENT = "linear-gradient(135deg, #46ADDC 0%, #46ADDC 40%, #D26AA1 100%)";
+
+function RujukanCard({ item, onNavigate }: {
+  item: { rs: string; noRujukan: string; rujukan: string; poli: string; tanggal: string };
+  onNavigate: () => void;
+}) {
+  const uid = typeof window !== "undefined" ? localStorage.getItem("jkn_user_id") : null;
+  const hasAntrean = uid && localStorage.getItem(`jkn_antrean_rujukan_${uid}_${item.noRujukan}`);
+  return (
+    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="px-4 pt-4 pb-2 border-b border-gray-100 text-center">
+        <p className="text-gray-900 font-bold text-sm">{item.rs}</p>
+        <p className="text-gray-400 text-xs mt-0.5">No. Rujukan: {item.noRujukan}</p>
+      </div>
+      <div className="px-4 py-3 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-[#184087] shrink-0" strokeWidth={1.8} />
+            <span className="text-gray-500 text-xs">Rujukan</span>
+          </div>
+          <span className="text-gray-700 text-xs font-medium pr-1">{item.rujukan}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Stethoscope className="w-4 h-4 text-[#184087] shrink-0" strokeWidth={1.8} />
+            <span className="text-gray-500 text-xs">Poli</span>
+          </div>
+          <span className="text-gray-700 text-xs font-medium pr-1">{item.poli}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-[#184087] shrink-0" strokeWidth={1.8} />
+            <span className="text-gray-500 text-xs">Tanggal Dirujuk</span>
+          </div>
+          <span className="text-gray-700 text-xs font-medium pr-1">{item.tanggal}</span>
+        </div>
+      </div>
+      <div className="px-4 pb-4">
+        {hasAntrean ? (
+          <button onClick={onNavigate} className="w-full bg-[#46ADDC] text-white font-bold text-sm py-3 rounded-xl">
+            Lihat Tiket Antrean
+          </button>
+        ) : (
+          <button onClick={onNavigate} className="w-full bg-[#009B4D] text-white font-bold text-sm py-3 rounded-xl">
+            Daftar Antrean
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const pesertaDummy = "Farah Adillah (0128056381133)";
 
@@ -72,7 +122,7 @@ export default function AntreanRujukanPage() {
   const firstItem = rujukanList[0];
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 relative">
+    <div className="flex flex-col min-h-full bg-gray-50 relative">
 
       {/* Header */}
       <div className="sticky top-0 z-10" style={{ background: GRADIENT }}>
@@ -88,7 +138,7 @@ export default function AntreanRujukanPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto no-scrollbar px-4 pt-5 pb-6 flex flex-col gap-5">
+      <div className="flex-1 px-4 pt-5 pb-6 flex flex-col gap-5">
 
         {/* Step indicator */}
         <div className="flex items-center gap-2">
@@ -109,7 +159,7 @@ export default function AntreanRujukanPage() {
         </div>
 
         {/* Peserta */}
-        <div className="relative flex flex-col gap-1.5">
+        <div className={`relative flex flex-col gap-1.5 ${tutorialStep === 0 ? "z-[5]" : ""}`}>
           <h2 className="text-[#184087] font-bold text-sm">Peserta</h2>
           {userLevel === "pemula" && <p className="text-gray-500 text-xs">Pilih data peserta yang akan didaftarkan untuk layanan kesehatan.</p>}
           <div className="relative mt-1">
@@ -131,6 +181,20 @@ export default function AntreanRujukanPage() {
               </div>
             )}
           </div>
+          {tutorialStep === 0 && (
+            <TutorialPopup
+              title="Peserta"
+              desc="Pilih data peserta yang akan menggunakan layanan kesehatan. Pastikan data peserta sudah sesuai sebelum melanjutkan."
+              visual={
+                <div className="w-full flex items-center justify-between border-2 border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 font-medium bg-white">
+                  <span>{pesertaList[0]}</span>
+                  <ChevronDown className="w-5 h-5 text-[#184087] shrink-0" />
+                </div>
+              }
+              onSkip={skipTutorial}
+              onNext={nextTutorial}
+            />
+          )}
         </div>
 
         {/* Info teks */}
@@ -140,126 +204,58 @@ export default function AntreanRujukanPage() {
           </p>
         )}
 
-        {/* Daftar Rujukan */}
+        {/* Daftar Rujukan — kartu pertama + popup dalam z-[5] saat step 1, sisanya di bawah overlay */}
         <div className="flex flex-col gap-4">
-          {rujukanList.map((item, i) => (
-            <div key={i} className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              {/* Header card */}
-              <div className="px-4 pt-4 pb-2 border-b border-gray-100 text-center">
-                <p className="text-gray-900 font-bold text-sm">{item.rs}</p>
-                <p className="text-gray-400 text-xs mt-0.5">No. Rujukan: {item.noRujukan}</p>
-              </div>
-              {/* Info rows */}
-              <div className="px-4 py-3 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-[#184087] shrink-0" strokeWidth={1.8} />
-                    <span className="text-gray-500 text-xs">Rujukan</span>
+
+          {/* Kartu pertama + popup */}
+          <div className={`relative ${tutorialStep === 1 ? "z-[5]" : ""}`}>
+            <RujukanCard item={firstItem} onNavigate={() => tutorialStep === null && router.push(`/antrean/rujukan/isi-data?noRujukan=${firstItem.noRujukan}`)} />
+            {tutorialStep === 1 && (
+              <TutorialPopup
+                title="Pilih Rujukan"
+                desc="Berikut daftar rujukan yang Anda miliki. Pilih rujukan yang sesuai lalu tekan 'Daftar Antrean' untuk melanjutkan."
+                visual={
+                  <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+                    <div className="px-4 pt-3 pb-2 border-b border-gray-100 text-center">
+                      <p className="text-gray-900 font-bold text-sm">{firstItem.rs}</p>
+                      <p className="text-gray-400 text-xs mt-0.5">No. Rujukan: {firstItem.noRujukan}</p>
+                    </div>
+                    <div className="px-4 py-2 flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-[#184087]" strokeWidth={1.8} /><span className="text-gray-500 text-xs">Rujukan</span></div>
+                        <span className="text-gray-700 text-xs font-medium">{firstItem.rujukan}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2"><Stethoscope className="w-4 h-4 text-[#184087]" strokeWidth={1.8} /><span className="text-gray-500 text-xs">Poli</span></div>
+                        <span className="text-gray-700 text-xs font-medium">{firstItem.poli}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-[#184087]" strokeWidth={1.8} /><span className="text-gray-500 text-xs">Tanggal Dirujuk</span></div>
+                        <span className="text-gray-700 text-xs font-medium">{firstItem.tanggal}</span>
+                      </div>
+                    </div>
+                    <div className="px-4 pb-3">
+                      <div className="w-full bg-[#009B4D] text-white font-bold text-sm py-2 rounded-xl text-center">Daftar Antrean</div>
+                    </div>
                   </div>
-                  <span className="text-gray-700 text-xs font-medium pr-1">{item.rujukan}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Stethoscope className="w-4 h-4 text-[#184087] shrink-0" strokeWidth={1.8} />
-                    <span className="text-gray-500 text-xs">Poli</span>
-                  </div>
-                  <span className="text-gray-700 text-xs font-medium pr-1">{item.poli}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-[#184087] shrink-0" strokeWidth={1.8} />
-                    <span className="text-gray-500 text-xs">Tanggal Dirujuk</span>
-                  </div>
-                  <span className="text-gray-700 text-xs font-medium pr-1">{item.tanggal}</span>
-                </div>
-              </div>
-              {/* Tombol aksi */}
-              <div className="px-4 pb-4">
-                {(() => {
-                  const uid = typeof window !== "undefined" ? localStorage.getItem("jkn_user_id") : null;
-                  const hasAntrean = uid && localStorage.getItem(`jkn_antrean_rujukan_${uid}_${item.noRujukan}`);
-                  return hasAntrean ? (
-                    <button
-                      onClick={() => router.push(`/antrean/rujukan/tiket?noRujukan=${item.noRujukan}`)}
-                      className="w-full bg-[#46ADDC] text-white font-bold text-sm py-3 rounded-xl"
-                    >
-                      Lihat Tiket Antrean
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => tutorialStep === null && router.push(`/antrean/rujukan/isi-data?noRujukan=${item.noRujukan}`)}
-                      className="w-full bg-[#009B4D] text-white font-bold text-sm py-3 rounded-xl"
-                    >
-                      Daftar Antrean
-                    </button>
-                  );
-                })()}
-              </div>
-            </div>
+                }
+                onSkip={skipTutorial}
+                onNext={nextTutorial}
+              />
+            )}
+          </div>
+
+          {/* Kartu 2, 3, 4 — selalu di bawah overlay (tidak punya z-index) */}
+          {rujukanList.slice(1).map((item) => (
+            <RujukanCard key={item.noRujukan} item={item} onNavigate={() => tutorialStep === null && router.push(`/antrean/rujukan/isi-data?noRujukan=${item.noRujukan}`)} />
           ))}
         </div>
       </div>
 
-      {/* Dim overlay saat tutorial aktif — di atas semua konten */}
+      {/* Dim overlay — sama persis dengan faskes tingkat pertama */}
       {tutorialStep !== null && (
-        <div className="absolute inset-0 bg-black/40 z-20 pointer-events-none" />
-      )}
-
-      {/* Tutorial step 0: Peserta — floating di atas overlay */}
-      {tutorialStep === 0 && (
-        <div className="absolute left-4 right-4 z-30" style={{ top: "180px" }}>
-          <TutorialPopup
-            title="Peserta"
-            desc="Pilih data peserta yang akan menggunakan layanan kesehatan. Pastikan data peserta sudah sesuai sebelum melanjutkan."
-            visual={
-              <div className="w-full flex items-center justify-between border-2 border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-700 font-medium bg-white">
-                <span>{pesertaList[0]}</span>
-                <ChevronDown className="w-5 h-5 text-[#184087] shrink-0" />
-              </div>
-            }
-            onSkip={skipTutorial}
-            onNext={nextTutorial}
-          />
-        </div>
-      )}
-
-      {/* Tutorial step 1: Kartu rujukan — floating di atas overlay */}
-      {tutorialStep === 1 && (
-        <div className="absolute left-4 right-4 z-30" style={{ top: "320px" }}>
-          <TutorialPopup
-            title="Pilih Rujukan"
-            desc="Berikut daftar rujukan yang Anda miliki. Pilih rujukan yang sesuai lalu tekan tombol 'Daftar Antrean' untuk melanjutkan proses pendaftaran."
-            visual={
-              <div className="border border-gray-200 rounded-xl overflow-hidden">
-                <div className="px-4 pt-3 pb-2 border-b border-gray-100 text-center">
-                  <p className="text-gray-900 font-bold text-sm">{firstItem.rs}</p>
-                  <p className="text-gray-400 text-xs mt-0.5">No. Rujukan: {firstItem.noRujukan}</p>
-                </div>
-                <div className="px-4 py-2 flex flex-col gap-1.5">
-                  {[
-                    { icon: <Building2 className="w-4 h-4 text-[#184087]" strokeWidth={1.8} />, label: "Rujukan", val: firstItem.rujukan },
-                    { icon: <Stethoscope className="w-4 h-4 text-[#184087]" strokeWidth={1.8} />, label: "Poli", val: firstItem.poli },
-                    { icon: <Calendar className="w-4 h-4 text-[#184087]" strokeWidth={1.8} />, label: "Tanggal Dirujuk", val: firstItem.tanggal },
-                  ].map((row) => (
-                    <div key={row.label} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">{row.icon}<span className="text-gray-500 text-xs">{row.label}</span></div>
-                      <span className="text-gray-700 text-xs font-medium">{row.val}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="px-4 pb-3">
-                  <div className="w-full bg-[#009B4D] text-white font-bold text-sm py-2.5 rounded-xl text-center">Daftar Antrean</div>
-                </div>
-              </div>
-            }
-            onSkip={skipTutorial}
-            onNext={nextTutorial}
-          />
-        </div>
+        <div className="absolute inset-0 bg-black/40 z-[4] pointer-events-none" />
       )}
     </div>
   );
 }
-
-
-

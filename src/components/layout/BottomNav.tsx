@@ -33,7 +33,7 @@ export default function BottomNav() {
   };
 
   return (
-    <nav className="bg-white border-t border-gray-100 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] shrink-0 relative z-10">
+    <nav className="bg-white border-t border-gray-100 shadow-[0_-2px_8px_rgba(0,0,0,0.06)] shrink-0 relative z-[1]">
       <div className="flex items-end justify-around px-2 h-16">
         {leftItems.map((item) => {
           const active = isActive(item.href);

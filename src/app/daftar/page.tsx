@@ -318,14 +318,15 @@ export default function DaftarPage() {
                 <div className="flex items-stretch gap-2 mt-1">
                   <input
                     type="text" maxLength={6}
+                    placeholder="Masukkan kode"
                     value={captchaInput} onChange={e => { setCaptchaInput(e.target.value.toUpperCase()); setErrCaptcha(""); }}
-                    className={`flex-1 border rounded-xl px-4 py-3 text-sm text-gray-800 outline-none bg-white ${errCaptcha ? "border-red-400 focus:border-red-400" : "border-gray-300 focus:border-[#184087]"}`}
+                    className={`w-0 flex-1 min-w-0 border rounded-xl px-3 py-3 text-sm text-gray-800 outline-none bg-white ${errCaptcha ? "border-red-400 focus:border-red-400" : "border-gray-300 focus:border-[#184087]"}`}
                   />
-                  <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 shrink-0">
-                    <span className="font-mono font-bold text-sm tracking-widest text-gray-700 select-none" style={{ fontFamily: "serif", letterSpacing: 4, textShadow: "1px 1px 2px rgba(0,0,0,0.2)" }}>
+                  <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-xl px-2.5 shrink-0">
+                    <span className="font-mono font-bold text-sm text-gray-700 select-none tracking-[3px]" style={{ fontFamily: "serif", textShadow: "1px 1px 2px rgba(0,0,0,0.2)" }}>
                       {captchaCode}
                     </span>
-                    <button type="button" onClick={() => { setCaptchaCode(generateCaptcha()); setCaptchaInput(""); setErrCaptcha(""); }}>
+                    <button type="button" onClick={() => { setCaptchaCode(generateCaptcha()); setCaptchaInput(""); setErrCaptcha(""); }} className="shrink-0">
                       <RefreshCw className="w-4 h-4 text-[#184087]" strokeWidth={2} />
                     </button>
                   </div>
