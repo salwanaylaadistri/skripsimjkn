@@ -2,7 +2,7 @@
 import { useRequireAuth } from "@/lib/useRequireAuth";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, Flashlight, CheckCircle2, RefreshCcw, CameraOff } from "lucide-react";
 import StatusBar from "@/components/layout/StatusBar";
 import { useUserLevel } from "@/contexts/UserLevelContext";
@@ -12,6 +12,8 @@ const GRADIENT = "linear-gradient(135deg, #46ADDC 0%, #46ADDC 40%, #D26AA1 100%)
 export default function CheckInPage() {
   useRequireAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromBeranda = searchParams.get("from") === "beranda";
   const { recordInteraction } = useUserLevel();
   useEffect(() => { recordInteraction("check_in"); }, []);
   const [torch, setTorch] = useState(false);
@@ -69,7 +71,27 @@ export default function CheckInPage() {
           <StatusBar />
           <div className="relative px-4 pb-5 pt-5 flex items-center">
             <button
-              onClick={() => router.back()}
+              onClick={() => {
+                if (fromBeranda) { router.replace("/"); return; }
+                const uid = localStorage.getItem("jkn_user_id");
+                if (!uid) { router.back(); return; }
+                // Kalau belum checkin, balik ke tiket yang aktif
+                if (!localStorage.getItem(`jkn_checkin_done_${uid}`)) {
+                  if (localStorage.getItem(`jkn_antrean_faskes_${uid}`)) {
+                    router.replace("/antrean/tiket");
+                    return;
+                  }
+                  for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith(`jkn_antrean_rujukan_${uid}_`)) {
+                      const noRujukan = key.split(`jkn_antrean_rujukan_${uid}_`)[1];
+                      router.replace(`/antrean/rujukan/tiket?noRujukan=${noRujukan}`);
+                      return;
+                    }
+                  }
+                }
+                router.back();
+              }}
               className="w-8 h-8 flex items-center justify-center z-10"
             >
               <ChevronLeft className="w-7 h-7 text-white" strokeWidth={2} />
@@ -143,7 +165,12 @@ export default function CheckInPage() {
 
           {/* Tombol simulasi berhasil scan */}
           <button
-            onClick={() => setShowSuccess(true)}
+            onClick={() => {
+              const uid = localStorage.getItem("jkn_user_id");
+              if (uid) localStorage.setItem(`jkn_checkin_done_${uid}`, "1");
+              window.dispatchEvent(new Event("jkn_checkin"));
+              setShowSuccess(true);
+            }}
             className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg"
           >
             <div className="w-12 h-12 rounded-full border-4 border-gray-300" />

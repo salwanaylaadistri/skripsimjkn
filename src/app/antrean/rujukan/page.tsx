@@ -32,13 +32,14 @@ const pesertaDummy = "Farah Adillah (0128056381133)";
 
 const rujukanList = [
   { rs: "RS Awal Bros", noRujukan: "0224465768859324", rujukan: "FKTP", poli: "Mata", tanggal: "1 Mei 2026" },
-  { rs: "RS Awal Bros", noRujukan: "0224465768859324", rujukan: "FKTP", poli: "Mata", tanggal: "1 Mei 2026" },
-  { rs: "RS Awal Bros", noRujukan: "0224465768859324", rujukan: "FKTP", poli: "Mata", tanggal: "1 Mei 2026" },
-  { rs: "RS Awal Bros", noRujukan: "0224465768859324", rujukan: "FKTP", poli: "Mata", tanggal: "1 Mei 2026" },
+  { rs: "RS Hermina", noRujukan: "0224465768859325", rujukan: "FKTP", poli: "Paru", tanggal: "3 Mei 2026" },
+  { rs: "RS Hasan Sadikin", noRujukan: "0224465768859326", rujukan: "FKRTL", poli: "Jantung", tanggal: "5 Mei 2026" },
+  { rs: "RS Advent", noRujukan: "0224465768859327", rujukan: "FKRTL", poli: "Saraf", tanggal: "7 Mei 2026" },
 ];
 
 export default function AntreanRujukanPage() {
   useRequireAuth();
+  const [, forceUpdate] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [pesertaList, setPesertaList] = useState<string[]>([pesertaDummy]);
   const [peserta, setPeserta] = useState("");
@@ -58,6 +59,8 @@ export default function AntreanRujukanPage() {
   useEffect(() => {
     if (userLevel === "pemula" && searchParams.get("skipTutorial") !== "true") setTutorialStep(0);
   }, [userLevel, searchParams]);
+
+  useEffect(() => { forceUpdate(n => n + 1); }, []);
 
   const skipTutorial = () => { recordTutorial(); setTutorialStep(null); };
   const nextTutorial = () => {
@@ -183,14 +186,27 @@ export default function AntreanRujukanPage() {
                 </div>
               </div>
 
-              {/* Daftar Antrean button */}
+              {/* Tombol aksi */}
               <div className="px-4 pb-4">
-                <button
-                  onClick={() => tutorialStep === null && router.push("/antrean/rujukan/isi-data")}
-                  className="w-full bg-[#009B4D] text-white font-bold text-sm py-3 rounded-xl"
-                >
-                  Daftar Antrean
-                </button>
+                {(() => {
+                  const uid = typeof window !== "undefined" ? localStorage.getItem("jkn_user_id") : null;
+                  const hasAntrean = uid && localStorage.getItem(`jkn_antrean_rujukan_${uid}_${item.noRujukan}`);
+                  return hasAntrean ? (
+                    <button
+                      onClick={() => router.push(`/antrean/rujukan/tiket?noRujukan=${item.noRujukan}`)}
+                      className="w-full bg-[#46ADDC] text-white font-bold text-sm py-3 rounded-xl"
+                    >
+                      Lihat Tiket Antrean
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => tutorialStep === null && router.push(`/antrean/rujukan/isi-data?noRujukan=${item.noRujukan}`)}
+                      className="w-full bg-[#009B4D] text-white font-bold text-sm py-3 rounded-xl"
+                    >
+                      Daftar Antrean
+                    </button>
+                  );
+                })()}
               </div>
 
               {tutorialStep === 1 && i === 0 && (

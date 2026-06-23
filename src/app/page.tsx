@@ -91,7 +91,7 @@ const features = [
 const jenisList = [
   { label: "Faskes Tingkat Pertama", icon: "/images/logolokasifaskes.svg", href: "/antrean" },
   { label: "Faskes Rujukan Tingkat Lanjut", icon: "/images/logoinfotempattidur.svg", href: "/antrean/rujukan" },
-  { label: "Kantor Cabang", icon: "/images/logoinfopeserta.svg", href: "/antrean" },
+  { label: "Kantor Cabang", icon: "/images/logoinfopeserta.svg", href: "/antrean/kantor-cabang" },
 ];
 
 const TERMS_PAGES = [
@@ -140,12 +140,53 @@ export default function BerandaPage() {
 
   const [dominanFeature, setDominanFeature] = useState<"antrean" | "riwayat" | "ubah-data">("antrean");
 
+  const [antreanAktif, setAntreanAktif] = useState<{ faskes: string; tanggal: string; estimasi: string; nomorAntrean: string; jenisAntrean: "faskes" | "rujukan" } | null>(null);
+  const [sudahCheckin, setSudahCheckin] = useState(false);
+
+  const refreshAntreanState = () => {
+    const uid = localStorage.getItem("jkn_user_id");
+    if (!uid) { setAntreanAktif(null); setSudahCheckin(false); return; }
+
+    setSudahCheckin(!!localStorage.getItem(`jkn_checkin_done_${uid}`));
+
+    const raw = localStorage.getItem(`jkn_antrean_faskes_${uid}`);
+    if (raw) {
+      const d = JSON.parse(raw);
+      setAntreanAktif({ faskes: d.faskes, tanggal: d.tanggal, estimasi: d.estimasi, nomorAntrean: d.nomorAntrean, jenisAntrean: "faskes" });
+      return;
+    }
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(`jkn_antrean_rujukan_${uid}_`)) {
+        const rd = JSON.parse(localStorage.getItem(key)!);
+        setAntreanAktif({ faskes: rd.rs, tanggal: rd.tanggal, estimasi: rd.estimasi, nomorAntrean: rd.nomorAntrean, jenisAntrean: "rujukan" });
+        return;
+      }
+    }
+    setAntreanAktif(null);
+  };
+
   useEffect(() => {
     const nama = localStorage.getItem("jkn_user_nama");
     if (nama) {
       const singkat = nama.split(" ").slice(0, 2).join(" ");
       setUserName(singkat);
     }
+    refreshAntreanState();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") refreshAntreanState();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", refreshAntreanState);
+    window.addEventListener("jkn_checkin", refreshAntreanState);
+    window.addEventListener("jkn_login", refreshAntreanState);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", refreshAntreanState);
+      window.removeEventListener("jkn_checkin", refreshAntreanState);
+      window.removeEventListener("jkn_login", refreshAntreanState);
+    };
   }, []);
 
   // Saat featureOrder dari RFR berubah, update dominanFeature otomatis
@@ -449,35 +490,76 @@ export default function BerandaPage() {
           </div>
         )}
 
-        {/* Check-in Banner */}
-        <button onClick={() => requireTerms(() => router.push("/check-in"))} className="w-full text-left">
-        <div
-          className="rounded-2xl p-4 flex items-center gap-3 cursor-pointer active:opacity-90 transition-opacity"
-          style={{ background: GRADIENT }}
-        >
-          <div className="flex-1 min-w-0">
-            <p className="text-white font-semibold text-sm leading-snug mb-3">
-              Lakukan check in untuk kunjungan Anda dengan detail berikut.
-            </p>
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-3.5 h-3.5 text-white/80 shrink-0" strokeWidth={1.5} />
-                <span className="text-white text-xs">RSUD Panembahan Senopati</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-3.5 h-3.5 text-white/80 shrink-0" strokeWidth={1.5} />
-                <span className="text-white text-xs">Selasa, 28 April 2024</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-white/80 shrink-0" strokeWidth={1.5} />
-                <span className="text-white text-xs">14:00 WIB</span>
+        {/* Card antrean aktif — hanya tampil jika ada antrean */}
+        {antreanAktif && (
+          sudahCheckin ? (
+            /* Sudah check in — reminder jadwal tanpa QR */
+            <div
+              className="rounded-2xl p-4 flex items-center gap-3"
+              style={{ background: GRADIENT }}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="bg-white/25 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                    {antreanAktif.jenisAntrean === "rujukan" ? "Rujukan Tingkat Lanjut" : "Faskes Tingkat Pertama"}
+                  </span>
+                </div>
+                <p className="text-white font-semibold text-sm leading-snug mb-3">
+                  Anda sudah check in. Silakan tunggu hingga nomor antrean dipanggil.
+                </p>
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-3.5 h-3.5 text-white/80 shrink-0" strokeWidth={1.5} />
+                    <span className="text-white text-xs">{antreanAktif.faskes}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5 text-white/80 shrink-0" strokeWidth={1.5} />
+                    <span className="text-white text-xs">{antreanAktif.tanggal}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5 text-white/80 shrink-0" strokeWidth={1.5} />
+                    <span className="text-white text-xs">No. Antrean {antreanAktif.nomorAntrean} · Estimasi {antreanAktif.estimasi}</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="w-px self-stretch bg-white/40 mx-1 shrink-0" />
-          <QrCode className="w-16 h-16 text-white/85 shrink-0" strokeWidth={1} />
-        </div>
-        </button>
+          ) : (
+            /* Belum check in — ada QR untuk check in */
+            <button onClick={() => requireTerms(() => router.push("/check-in?from=beranda"))} className="w-full text-left">
+              <div
+                className="rounded-2xl p-4 flex items-center gap-3 cursor-pointer active:opacity-90 transition-opacity"
+                style={{ background: GRADIENT }}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-white/25 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                      {antreanAktif.jenisAntrean === "rujukan" ? "Rujukan Tingkat Lanjut" : "Faskes Tingkat Pertama"}
+                    </span>
+                  </div>
+                  <p className="text-white font-semibold text-sm leading-snug mb-3">
+                    Lakukan check in untuk kunjungan Anda dengan detail berikut.
+                  </p>
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-3.5 h-3.5 text-white/80 shrink-0" strokeWidth={1.5} />
+                      <span className="text-white text-xs">{antreanAktif.faskes}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5 text-white/80 shrink-0" strokeWidth={1.5} />
+                      <span className="text-white text-xs">{antreanAktif.tanggal}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-white/80 shrink-0" strokeWidth={1.5} />
+                      <span className="text-white text-xs">Estimasi: {antreanAktif.estimasi}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="w-px self-stretch bg-white/40 mx-1 shrink-0" />
+                <QrCode className="w-16 h-16 text-white/85 shrink-0" strokeWidth={1} />
+              </div>
+            </button>
+          )
+        )}
 
         {/* Feature Grid â€” urutan dari RFR (featureOrder) */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">

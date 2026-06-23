@@ -83,6 +83,7 @@ export default function LoginPage() {
           localStorage.setItem("jkn_nik", profile.nik ?? "");
         }
       } catch { /* tidak blokir login jika fetch profil gagal */ }
+      // checkin_done tidak dihapus saat login — per-user key sudah aman dipisah
       sessionStorage.setItem("from_login", "1");
       window.dispatchEvent(new Event("jkn_login"));
       router.push("/");

@@ -2,7 +2,7 @@
 import { useRequireAuth } from "@/lib/useRequireAuth";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronDown, ChevronRight, CalendarDays, X } from "lucide-react";
 import StatusBar from "@/components/layout/StatusBar";
 import { useUserLevel } from "@/contexts/UserLevelContext";
@@ -54,6 +54,8 @@ const MAX_DATE = new Date(RUJUKAN_DATE.getTime() + 89 * 24 * 60 * 60 * 1000); //
 export default function IsiDataRujukanPage() {
   useRequireAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const noRujukan = searchParams.get("noRujukan") ?? "0224465768859324";
   const today = new Date();
   const { userLevel, recordTutorial } = useUserLevel();
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
@@ -224,7 +226,22 @@ export default function IsiDataRujukanPage() {
         <div className="flex-1" />
 
         <button
-          onClick={() => router.push("/antrean/rujukan/tiket")}
+          onClick={() => {
+            const uid = localStorage.getItem("jkn_user_id");
+            if (uid) {
+              localStorage.removeItem(`jkn_checkin_done_${uid}`);
+              localStorage.setItem(`jkn_antrean_rujukan_${uid}_${noRujukan}`, JSON.stringify({
+                noRujukan,
+                rs: "RS Awal Bros",
+                tanggal: selectedDate ? formatDate(selectedDate) : "-",
+                tenagaMedis: tenagaMedis ?? "-",
+                nomorAntrean: "14",
+                estimasi: "09:30",
+                kodeBook: "2348405734898",
+              }));
+            }
+            router.push(`/antrean/rujukan/tiket?noRujukan=${noRujukan}`);
+          }}
           className="w-full bg-[#009B4D] text-white font-bold text-base py-4 rounded-2xl"
         >
           Simpan

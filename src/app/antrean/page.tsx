@@ -80,6 +80,15 @@ export default function AntreanPage() {
   const router = useRouter();
   const { userLevel, recordTutorial, recordInteraction, recordTaskCompletion, recordError } = useUserLevel();
   useEffect(() => { recordInteraction("antrean"); }, []);
+
+  // Redirect ke tiket jika sudah ada antrean aktif untuk akun ini
+  useEffect(() => {
+    const uid = localStorage.getItem("jkn_user_id");
+    if (uid && localStorage.getItem(`jkn_antrean_faskes_${uid}`)) {
+      router.replace("/antrean/tiket");
+    }
+  }, []);
+
   const taskStartRef = useRef<number>(Date.now());
   const taskCompletedRef = useRef(false);
   useEffect(() => {
@@ -93,12 +102,15 @@ export default function AntreanPage() {
   const [openDrop, setOpenDrop] = useState<DropdownField>(null);
   const [pesertaList, setPesertaList] = useState<string[]>([pesertaDummy]);
   const [peserta, setPeserta] = useState("");
+  const [faskes, setFaskes] = useState("{faskes}");
   useEffect(() => {
     const nama = localStorage.getItem("jkn_user_nama") ?? "Pengguna";
     const nik  = localStorage.getItem("jkn_nik") ?? "-";
     const utama = `${nama} (${nik})`;
     setPesertaList([utama, pesertaDummy]);
     setPeserta(utama);
+    const savedFaskes = localStorage.getItem("jkn_faskes");
+    if (savedFaskes) setFaskes(savedFaskes);
   }, []);
   const [poli, setPoli] = useState("Poli Umum");
   const [tanggal, setTanggal] = useState(tanggalList[0]);
@@ -202,7 +214,7 @@ export default function AntreanPage() {
           {userLevel === "pemula" && <p className="text-gray-500 text-xs">Menampilkan fasilitas kesehatan tempat Anda terdaftar.</p>}
           <div className="border-2 border-[#184087] rounded-xl bg-white mt-1 overflow-hidden">
             <div className="bg-[#EBF4FB] px-4 py-2.5 text-center">
-              <span className="text-[#184087] font-bold text-sm">Klinik Indi Medika</span>
+              <span className="text-[#184087] font-bold text-sm">{faskes}</span>
             </div>
             <div className="px-4 py-3 flex flex-col gap-2">
               <div className="flex items-start gap-3">
@@ -224,7 +236,7 @@ export default function AntreanPage() {
               visual={
                 <div className="border-2 border-[#184087] rounded-xl bg-white overflow-hidden">
                   <div className="bg-[#EBF4FB] px-4 py-2.5 text-center">
-                    <span className="text-[#184087] font-bold text-sm">Klinik Indi Medika</span>
+                    <span className="text-[#184087] font-bold text-sm">{faskes}</span>
                   </div>
                   <div className="px-4 py-3 flex flex-col gap-2">
                     <div className="flex items-start gap-3">
@@ -386,6 +398,17 @@ export default function AntreanPage() {
               recordError();
               setTenagaError(true);
               return;
+            }
+            const uid = localStorage.getItem("jkn_user_id");
+            if (uid) {
+              localStorage.removeItem(`jkn_checkin_done_${uid}`);
+              localStorage.setItem(`jkn_antrean_faskes_${uid}`, JSON.stringify({
+                peserta, poli, tanggal, tenagaMedis, keluhan,
+                faskes,
+                nomorAntrean: "14",
+                estimasi: "09:30",
+                kodeBook: "2348405734898",
+              }));
             }
             const duration = Math.floor((Date.now() - taskStartRef.current) / 1000);
             taskCompletedRef.current = true;
