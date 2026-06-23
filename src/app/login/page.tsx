@@ -331,22 +331,22 @@ export default function LoginPage() {
 
   if (!showForm) {
     return (
-      <div className="h-full overflow-hidden relative">
+      <div className="flex flex-col min-h-full relative overflow-hidden">
         <StatusBar />
         <img
           src="/images/asetlogin.png"
           alt="background"
-          className="absolute top-0 left-1/2 -translate-x-1/2"
-          style={{ width: "100%", height: "auto" }}
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-full"
+          style={{ height: "auto" }}
         />
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-center" style={{ height: "72%" }}>
+        <div className="flex-1 flex items-center justify-center relative z-10">
           <img
             src="/images/logologinmjkn.png"
             alt="Mobile JKN"
             style={{ width: 140, height: 140, objectFit: "contain" }}
           />
         </div>
-        <div className="absolute bottom-12 left-0 right-0 px-8 flex flex-col gap-3">
+        <div className="relative z-10 px-8 pb-12 flex flex-col gap-3">
           <button
             onClick={() => setShowForm(true)}
             className="w-full bg-[#009B4D] text-white font-bold text-base py-3.5 rounded-full"
@@ -381,7 +381,7 @@ export default function LoginPage() {
           style={{ width: 120, height: 120, objectFit: "contain" }}
         />
       </div>
-      <div className="absolute left-0 right-0 bottom-0 px-6 flex flex-col gap-4 z-10" style={{ top: "38%" }}>
+      <div className="absolute left-0 right-0 bottom-0 px-6 flex flex-col gap-4 z-10 overflow-y-auto" style={{ top: "38%" }}>
         <div className="flex flex-col gap-1">
           <h2 className="text-white font-bold text-sm">Nomor Induk Kependudukan (NIK)</h2>
           <p className="text-white/70 text-xs">Nomor Induk Kependudukan yang terdaftar di Dukcapil</p>

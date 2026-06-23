@@ -306,15 +306,15 @@ export default function BerandaPage() {
         <StatusBar />
 
         {/* Logo | Search | CS Icon */}
-        <div className="flex items-center gap-3 mb-5 px-4 mt-5">
+        <div className="flex items-center gap-2 mb-5 px-3 mt-5">
           <Image
             src="/images/logomjkn.svg"
             alt="Mobile JKN"
-            width={40}
-            height={28}
+            width={32}
+            height={22}
             className="object-contain shrink-0"
           />
-          <div ref={searchRef} className="flex-1 relative">
+          <div ref={searchRef} className="flex-1 min-w-0 relative">
             <div className="bg-white rounded-full flex items-center gap-2 px-3 py-2 shadow-sm">
               {searchLoading
                 ? <Loader2 className="w-4 h-4 text-[#46ADDC] shrink-0 animate-spin" />
@@ -327,7 +327,7 @@ export default function BerandaPage() {
                 onFocus={() => setSearchFocused(true)}
                 onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
                 placeholder="Cari layanan..."
-                className="flex-1 text-sm text-gray-700 placeholder-gray-400 bg-transparent outline-none"
+                className="flex-1 min-w-0 text-sm text-gray-700 placeholder-gray-400 bg-transparent outline-none"
               />
               {searchQuery && (
                 <button onClick={() => setSearchQuery("")} className="shrink-0">

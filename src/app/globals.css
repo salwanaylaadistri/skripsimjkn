@@ -32,9 +32,15 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-button, a, [role="button"] {
+html, body {
+  touch-action: manipulation;
+}
+
+button, a, [role="button"], input, select, textarea {
   cursor: pointer;
   touch-action: manipulation;
+  -webkit-user-select: auto;
+  user-select: auto;
 }
 
 html,
@@ -42,8 +48,17 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
+  width: 100%;
+  max-width: 100vw;
   background-color: #f0f0f0;
   font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Cegah iOS Safari auto-zoom saat focus input */
+input, select, textarea {
+  font-size: 16px !important;
 }
 
 /* Scrollbar disembunyikan di mobile container */

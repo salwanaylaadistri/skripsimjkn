@@ -102,7 +102,7 @@ export default function AntreanPage() {
   const [openDrop, setOpenDrop] = useState<DropdownField>(null);
   const [pesertaList, setPesertaList] = useState<string[]>([pesertaDummy]);
   const [peserta, setPeserta] = useState("");
-  const [faskes, setFaskes] = useState("{faskes}");
+  const [faskes, setFaskes] = useState("Klinik Indi Medika");
   useEffect(() => {
     const nama = localStorage.getItem("jkn_user_nama") ?? "Pengguna";
     const nik  = localStorage.getItem("jkn_nik") ?? "-";
