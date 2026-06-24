@@ -36,8 +36,9 @@ const poliList = ["Poli Umum", "Poli Gigi"];
 const tanggalList = ["Hari ini (28-04-2026)", "Besok (29-04-2026)"];
 
 const tenagaMedisList = [
-  { nama: "Aldhi Nadir", jam: "08:45 - 15:00", diambil: 11, sisa: 2, panggil: 12 },
-  { nama: "Aldhi Nadir", jam: "08:45 - 15:00", diambil: 11, sisa: 2, panggil: 12 },
+  { nama: "dr. Aldhi Nadir", jam: "08:00 - 12:00", diambil: 8, sisa: 4, panggil: 9 },
+  { nama: "dr. Siti Rahayu", jam: "10:00 - 14:00", diambil: 5, sisa: 7, panggil: 6 },
+  { nama: "dr. Budi Santoso", jam: "13:00 - 17:00", diambil: 3, sisa: 9, panggil: 4 },
 ];
 
 

@@ -89,7 +89,7 @@ export function UserLevelProvider({ children }: { children: ReactNode }) {
     const ownerId = localStorage.getItem("jkn_owner_id");
 
     // Reset state ke default dulu — mencegah nilai akun sebelumnya tampil
-    setUserLevelState("pemula");
+    setUserLevelState(isAdaptive() ? "pemula" : "mahir");
     setIsFirstSession(true);
     setFeatureOrder(["antrean", "riwayat", "perubahan_data"]);
     setIsPredicting(false);
@@ -160,8 +160,11 @@ export function UserLevelProvider({ children }: { children: ReactNode }) {
     }
     setSessionCount(count);
 
-    // Grup B (statis): skip predict, tampilkan layout default
-    if (!isAdaptive()) return;
+    // Grup B (statis): skip predict, tampilkan layout tanpa deskripsi (seperti Mobile JKN asli)
+    if (!isAdaptive()) {
+      setUserLevelState("mahir");
+      return;
+    }
 
     // Jalankan predict saat pertama mount
     runPredict();
