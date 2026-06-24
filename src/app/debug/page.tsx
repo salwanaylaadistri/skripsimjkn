@@ -14,6 +14,7 @@ export default function DebugPage() {
   const [currentSession, setCurrentSession] = useState<string>("");
   const [logs, setLogs] = useState<unknown[]>([]);
   const [researchLogs, setResearchLogs] = useState<{ total: number; pemula: number; mahir: number; data: unknown[] } | null>(null);
+  const [abLogs, setAbLogs] = useState<{ total: number; grup_a: number; grup_b: number; data: unknown[] } | null>(null);
   const [saveLabel, setSaveLabel] = useState<"pemula" | "mahir">("pemula");
   const [saveStatus, setSaveStatus] = useState<string>("");
   const [resetCountDone, setResetCountDone] = useState(false);
@@ -91,6 +92,23 @@ export default function DebugPage() {
     const res = await fetch(`${BACKEND_URL}/research`);
     const data = await res.json();
     setResearchLogs(data);
+  };
+
+  const fetchAbLogs = async () => {
+    const res = await fetch(`${BACKEND_URL}/ab-test`);
+    const data = await res.json();
+    setAbLogs(data);
+  };
+
+  const deleteAbLog = async (id: number) => {
+    await fetch(`${BACKEND_URL}/ab-test/${id}`, { method: "DELETE" });
+    fetchAbLogs();
+  };
+
+  const deleteAllAbLogs = async () => {
+    if (!confirm("Hapus SEMUA data A/B test? Tidak bisa dikembalikan.")) return;
+    await fetch(`${BACKEND_URL}/ab-test`, { method: "DELETE" });
+    fetchAbLogs();
   };
 
   const saveToResearch = async () => {
@@ -276,6 +294,61 @@ export default function DebugPage() {
                   ["shortcut", String(l.shortcut_used)],
                   ["antrean", String(l.freq_antrean)],
                   ["riwayat", String(l.freq_riwayat)],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex justify-between text-xs">
+                    <span className="text-gray-400">{k}</span>
+                    <span className="font-medium text-gray-700">{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* A/B Test Logs */}
+      <div className="bg-white rounded-2xl p-4 flex flex-col gap-2 shadow-sm border-2 border-purple-200">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-purple-700">A/B Test Logs</h2>
+          <div className="flex gap-2">
+            <button onClick={fetchAbLogs} className="text-xs bg-purple-600 text-white px-3 py-1 rounded-lg">Muat</button>
+            {abLogs && abLogs.total > 0 && (
+              <button onClick={deleteAllAbLogs} className="text-xs bg-red-500 text-white px-3 py-1 rounded-lg">Hapus Semua</button>
+            )}
+          </div>
+        </div>
+        {abLogs && (
+          <div className="flex gap-2 text-xs mb-1 flex-wrap">
+            <span className="bg-gray-100 px-2 py-1 rounded-lg text-gray-600">Total: <b>{abLogs.total}</b></span>
+            <span className="bg-green-100 px-2 py-1 rounded-lg text-green-700">Grup A (Adaptif): <b>{abLogs.grup_a}</b></span>
+            <span className="bg-blue-100 px-2 py-1 rounded-lg text-[#184087]">Grup B (Statis): <b>{abLogs.grup_b}</b></span>
+          </div>
+        )}
+        {!abLogs && <p className="text-xs text-gray-400">Tekan "Muat" untuk lihat data A/B testing.</p>}
+        {abLogs?.data.map((log: unknown) => {
+          const l = log as Record<string, unknown>;
+          return (
+            <div key={String(l.id)} className="border border-gray-100 rounded-xl p-3 flex flex-col gap-1">
+              <div className="flex justify-between items-center text-[10px] text-gray-400">
+                <span>ID: {String(l.id)} | user: {String(l.user_id)}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-0.5 rounded-full font-bold text-white text-[10px] ${l.grup === "A" ? "bg-green-600" : "bg-[#184087]"}`}>
+                    Grup {String(l.grup)}
+                  </span>
+                  <button onClick={() => deleteAbLog(l.id as number)} className="text-red-400 text-[10px] underline">Hapus</button>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-x-4 gap-y-0.5 mt-1">
+                {[
+                  ["durasi", `${l.session_duration}s`],
+                  ["sesi ke-", String(l.session_count)],
+                  ["tutorial", String(l.tutorial_accessed)],
+                  ["shortcut", String(l.shortcut_used)],
+                  ["antrean", String(l.freq_antrean)],
+                  ["riwayat", String(l.freq_riwayat)],
+                  ["ubah data", String(l.freq_perubahan_data)],
+                  ["task done", String(l.task_completion_rate)],
+                  ["error", String(l.error_count)],
                 ].map(([k, v]) => (
                   <div key={k} className="flex justify-between text-xs">
                     <span className="text-gray-400">{k}</span>

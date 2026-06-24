@@ -19,6 +19,7 @@ import {
 import JanjiLayananCarousel from "@/components/home/JanjiLayananCarousel";
 import StatusBar from "@/components/layout/StatusBar";
 import { useUserLevel } from "@/contexts/UserLevelContext";
+import { isAdaptive } from "@/lib/adaptiveFlag";
 
 const searchData = [
   { label: "Antrean Online", desc: "Ambil nomor antrean layanan kesehatan", href: "/antrean", icon: "/images/logoantre.svg" },
@@ -199,8 +200,9 @@ export default function BerandaPage() {
     };
   }, []);
 
-  // Saat featureOrder dari RFR berubah, update dominanFeature otomatis
+  // Saat featureOrder dari RFR berubah, update dominanFeature otomatis (hanya grup A)
   useEffect(() => {
+    if (!isAdaptive()) return;
     if (featureOrder && featureOrder.length > 0) {
       setDominanFeature(rfr2dominant(featureOrder[0]));
     }
@@ -406,7 +408,7 @@ export default function BerandaPage() {
               Semua Keluarga Anda Terlindungi (Aktif)
             </p>
             <div className="flex items-center gap-1.5">
-              {isPredicting ? (
+              {isAdaptive() && isPredicting && (
                 <div className="flex items-center gap-1.5 bg-white/15 border border-white/30 rounded-full px-3 py-1 animate-pulse">
                   <svg className="w-3 h-3 text-white animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -414,25 +416,6 @@ export default function BerandaPage() {
                   </svg>
                   <span className="text-white text-[10px] font-semibold">Menyesuaikan...</span>
                 </div>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setDominanFeature(dominanFeature === "antrean" ? "riwayat" : dominanFeature === "riwayat" ? "ubah-data" : "antrean")}
-                    className="flex items-center gap-1 bg-white/20 border border-white/40 rounded-full px-2.5 py-1"
-                  >
-                    <div className="w-1.5 h-1.5 rounded-full bg-purple-300" />
-                    <span className="text-white text-[10px] font-semibold">
-                      {dominanFeature === "antrean" ? "Antrean" : dominanFeature === "riwayat" ? "Riwayat" : "Ubah Data"}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => setUserLevel(userLevel === "pemula" ? "mahir" : "pemula")}
-                    className="flex items-center gap-1 bg-white/20 border border-white/40 rounded-full px-2.5 py-1"
-                  >
-                    <div className={`w-1.5 h-1.5 rounded-full ${userLevel === "mahir" ? "bg-green-300" : "bg-yellow-300"}`} />
-                    <span className="text-white text-[10px] font-semibold">{userLevel === "pemula" ? "Pemula" : "Mahir"}</span>
-                  </button>
-                </>
               )}
             </div>
           </div>

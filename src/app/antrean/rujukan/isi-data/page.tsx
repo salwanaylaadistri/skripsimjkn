@@ -3,6 +3,7 @@ import { useRequireAuth } from "@/lib/useRequireAuth";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { isAdaptive } from "@/lib/adaptiveFlag";
 import { ChevronLeft, ChevronDown, ChevronRight, CalendarDays, X } from "lucide-react";
 import StatusBar from "@/components/layout/StatusBar";
 import { useUserLevel } from "@/contexts/UserLevelContext";
@@ -63,7 +64,7 @@ export default function IsiDataRujukanPage() {
   const [calOpen, setCalOpen] = useState(false);
 
   useEffect(() => {
-    if (userLevel === "pemula") setTutorialStep(0);
+    if (isAdaptive() && userLevel === "pemula") setTutorialStep(0);
   }, [userLevel]);
 
   const skipTutorial = () => { recordTutorial(); setTutorialStep(null); };

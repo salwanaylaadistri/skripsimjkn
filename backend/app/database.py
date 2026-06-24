@@ -78,6 +78,29 @@ def init_db():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS ab_test_logs (
+            id                      INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id                 INTEGER,
+            grup                    TEXT NOT NULL,
+            partisipan_ke           INTEGER NOT NULL DEFAULT 0,
+            timestamp               TEXT NOT NULL,
+            session_count           INTEGER NOT NULL,
+            session_duration        REAL NOT NULL,
+            unique_feature_accessed INTEGER NOT NULL,
+            feature_frequency       REAL NOT NULL,
+            task_completion_rate    REAL NOT NULL,
+            task_time               REAL NOT NULL,
+            error_count             INTEGER NOT NULL,
+            tutorial_accessed       INTEGER NOT NULL,
+            shortcut_used           INTEGER NOT NULL,
+            freq_antrean            INTEGER NOT NULL DEFAULT 0,
+            freq_riwayat            INTEGER NOT NULL DEFAULT 0,
+            freq_perubahan_data     INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
     conn.commit()
     conn.close()
     print("Database initialized: jkn.db")

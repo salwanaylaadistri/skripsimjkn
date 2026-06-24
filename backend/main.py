@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime, timezone
 from app.database import init_db, get_connection
-from app.models import InteractionRecord, RegisterRequest, LoginRequest, ResetPasswordRequest, SetPinRequest, VerifyPinRequest, PredictRequest, DeleteAccountRequest, ResearchLogRequest
+from app.models import InteractionRecord, RegisterRequest, LoginRequest, ResetPasswordRequest, SetPinRequest, VerifyPinRequest, PredictRequest, DeleteAccountRequest, ResearchLogRequest, AbTestRecord
 import pickle
 import os
 import numpy as np
@@ -208,6 +208,44 @@ def get_all_interactions():
     conn.close()
     return {"count": len(rows), "data": rows}
 
+@app.post("/ab-test")
+def save_ab_test(data: AbTestRecord):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO ab_test_logs (
+            user_id, grup, timestamp, session_count, session_duration,
+            unique_feature_accessed, feature_frequency,
+            task_completion_rate, task_time, error_count,
+            tutorial_accessed, shortcut_used,
+            freq_antrean, freq_riwayat, freq_perubahan_data, partisipan_ke
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        data.user_id, data.grup,
+        datetime.now(timezone.utc).isoformat(),
+        data.session_count, data.session_duration,
+        data.unique_feature_accessed, data.feature_frequency,
+        data.task_completion_rate, data.task_time, data.error_count,
+        data.tutorial_accessed, data.shortcut_used,
+        data.freq_antrean, data.freq_riwayat, data.freq_perubahan_data,
+        data.partisipan_ke,
+    ))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return {"status": "saved", "id": new_id}
+
+@app.get("/ab-test")
+def get_ab_test_logs():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM ab_test_logs ORDER BY id DESC")
+    rows = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+    grup_a = [r for r in rows if r["grup"] == "A"]
+    grup_b = [r for r in rows if r["grup"] == "B"]
+    return {"total": len(rows), "grup_a": len(grup_a), "grup_b": len(grup_b), "data": rows}
+
 @app.post("/predict")
 def predict(data: PredictRequest):
     rfc_features = pd.DataFrame([{
@@ -340,6 +378,42 @@ def delete_research_log(log_id: int):
         conn.close()
         raise HTTPException(status_code=404, detail="Data tidak ditemukan.")
     cursor.execute("DELETE FROM research_logs WHERE id = ?", (log_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "deleted", "id": log_id}
+
+@app.delete("/ab-test/{log_id}")
+def delete_ab_test_log(log_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM ab_test_logs WHERE id = ?", (log_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Data tidak ditemukan.")
+    cursor.execute("DELETE FROM ab_test_logs WHERE id = ?", (log_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "deleted", "id": log_id}
+
+@app.delete("/ab-test")
+def delete_all_ab_test_logs():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM ab_test_logs")
+    conn.commit()
+    count = cursor.rowcount
+    conn.close()
+    return {"status": "deleted_all", "count": count}
+
+@app.delete("/interaction/{log_id}")
+def delete_interaction_log(log_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM interaction_logs WHERE id = ?", (log_id,))
+    if not cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Data tidak ditemukan.")
+    cursor.execute("DELETE FROM interaction_logs WHERE id = ?", (log_id,))
     conn.commit()
     conn.close()
     return {"status": "deleted", "id": log_id}

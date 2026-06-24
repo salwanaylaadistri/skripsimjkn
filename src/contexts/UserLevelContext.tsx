@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 import { UserLevel, InteractionData } from "@/lib/types";
+import { initAdaptiveFlag, isAdaptive } from "@/lib/adaptiveFlag";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
 
@@ -71,13 +72,10 @@ export function UserLevelProvider({ children }: { children: ReactNode }) {
   useEffect(() => { sessionCountRef.current = sessionCount; }, [sessionCount]);
 
   // Simpan per-user key setiap kali ada interaksi bermakna
-  // userId disertakan di dalam data agar bisa divalidasi saat dibaca
   useEffect(() => {
     if (interactionData.uniqueFeatureAccessed > 0) {
       const currentId = localStorage.getItem("jkn_user_id");
-      const ownerId = localStorage.getItem("jkn_owner_id");
-      // Hanya simpan kalau owner_id cocok — mencegah data tersimpan ke key akun yang salah
-      if (currentId && ownerId === currentId) {
+      if (currentId) {
         const duration = Math.floor((Date.now() - sessionStart) / 1000);
         const snapshot = { ...interactionData, sessionDuration: duration, userId: currentId };
         localStorage.setItem(`jkn_interaction_data_${currentId}`, JSON.stringify(snapshot));
@@ -149,6 +147,9 @@ export function UserLevelProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Baca flag A/B dari URL dan simpan ke sessionStorage
+    initAdaptiveFlag();
+
     const storedCount = localStorage.getItem("jkn_session_count");
 
     let count = storedCount ? parseInt(storedCount) : 0;
@@ -158,6 +159,9 @@ export function UserLevelProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("jkn_session_count", String(count));
     }
     setSessionCount(count);
+
+    // Grup B (statis): skip predict, tampilkan layout default
+    if (!isAdaptive()) return;
 
     // Jalankan predict saat pertama mount
     runPredict();

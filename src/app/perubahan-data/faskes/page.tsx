@@ -3,6 +3,7 @@ import { useRequireAuth } from "@/lib/useRequireAuth";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { isAdaptive } from "@/lib/adaptiveFlag";
 import Link from "next/link";
 import { ChevronLeft, ChevronDown, ShieldAlert, MessageSquare, Lock, Building2, Users, X, ChevronRight, CheckCircle2 } from "lucide-react";
 import StatusBar from "@/components/layout/StatusBar";
@@ -123,7 +124,7 @@ export default function PerubahanFaksesPage() {
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
 
   useEffect(() => {
-    if (userLevel === "pemula") setTutorialStep(0);
+    if (isAdaptive() && userLevel === "pemula") setTutorialStep(0);
   }, [userLevel]);
 
   const skipTutorial = () => { recordTutorial(); setTutorialStep(null); };

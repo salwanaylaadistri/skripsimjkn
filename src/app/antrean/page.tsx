@@ -4,6 +4,7 @@ import { useRequireAuth } from "@/lib/useRequireAuth";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { isAdaptive } from "@/lib/adaptiveFlag";
 import { ChevronLeft, ChevronDown, MapPin, Phone, X, ChevronRight } from "lucide-react";
 
 function TutorialPopup({ title, desc, visual, onSkip, onNext }: {
@@ -121,7 +122,7 @@ export default function AntreanPage() {
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
 
   useEffect(() => {
-    if (userLevel === "pemula") setTutorialStep(0);
+    if (isAdaptive() && userLevel === "pemula") setTutorialStep(0);
   }, [userLevel]);
 
   const skipTutorial = () => { recordTutorial(); setTutorialStep(null); };

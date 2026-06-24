@@ -4,6 +4,7 @@ import { useRequireAuth } from "@/lib/useRequireAuth";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { isAdaptive } from "@/lib/adaptiveFlag";
 import { ChevronLeft, ChevronDown, ChevronRight, Building2, Stethoscope, Calendar } from "lucide-react";
 import StatusBar from "@/components/layout/StatusBar";
 import { useUserLevel } from "@/contexts/UserLevelContext";
@@ -107,7 +108,7 @@ export default function AntreanRujukanPage() {
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
 
   useEffect(() => {
-    if (userLevel === "pemula" && searchParams.get("skipTutorial") !== "true") setTutorialStep(0);
+    if (isAdaptive() && userLevel === "pemula" && searchParams.get("skipTutorial") !== "true") setTutorialStep(0);
   }, [userLevel, searchParams]);
 
   useEffect(() => { forceUpdate(n => n + 1); }, []);

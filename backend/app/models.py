@@ -57,6 +57,23 @@ class ResearchLogRequest(BaseModel):
     freq_riwayat:            int = 0
     freq_perubahan_data:     int = 0
 
+class AbTestRecord(BaseModel):
+    user_id:                 Optional[int] = None
+    grup:                    str
+    partisipan_ke:           int = 0
+    session_count:           int
+    session_duration:        float
+    unique_feature_accessed: int
+    feature_frequency:       float
+    task_completion_rate:    float
+    task_time:               float
+    error_count:             int
+    tutorial_accessed:       int
+    shortcut_used:           int
+    freq_antrean:            int = 0
+    freq_riwayat:            int = 0
+    freq_perubahan_data:     int = 0
+
 class DeleteAccountRequest(BaseModel):
     user_id: int
     password: str
