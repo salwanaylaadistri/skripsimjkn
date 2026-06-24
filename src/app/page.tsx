@@ -456,7 +456,7 @@ export default function BerandaPage() {
               </div>
             </div>
           </div>
-        ) : dominanFeature === "antrean" ? (
+        ) : (userLevel === "pemula" || dominanFeature === "antrean") ? (
           <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 flex items-center gap-4">
             <div className="w-20 h-20 flex items-center justify-center shrink-0">
               <Image src="/images/logoantre.svg" alt="Antrean Online" width={80} height={80} className="object-contain" />
